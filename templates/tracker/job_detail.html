@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.title }} — JobTracker{% endblock %}
+
+{% block content %}
+<style>
+    .detail-wrapper {
+        max-width: 680px;
+        margin: 0 auto;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        text-decoration: none;
+        margin-bottom: 1.5rem;
+        transition: color 0.15s;
+    }
+
+    .back-link:hover { color: var(--text); }
+
+    .detail-card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .detail-header {
+        padding: 1.75rem 2rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .detail-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.02em;
+        margin: 0 0 0.35rem;
+    }
+
+    .detail-company {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.75rem;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+    .s-applied   { background: var(--blue-soft);   color: var(--blue);   }
+    .s-applied   .status-dot { background: var(--blue); }
+    .s-interview { background: var(--yellow-soft);  color: var(--yellow); }
+    .s-interview .status-dot { background: var(--yellow); }
+    .s-offer     { background: var(--green-soft);   color: var(--green);  }
+    .s-offer     .status-dot { background: var(--green); }
+    .s-rejected  { background: var(--red-soft);     color: var(--red);    }
+    .s-rejected  .status-dot { background: var(--red); }
+    .s-default   { background: var(--surface-2);    color: var(--text-muted); }
+    .s-default   .status-dot { background: var(--text-dim); }
+
+    .detail-body { padding: 1.75rem 2rem; }
+
+    .detail-field { margin-bottom: 1.5rem; }
+    .detail-field:last-child { margin-bottom: 0; }
+
+    .field-label {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 0.4rem;
+    }
+
+    .field-value {
+        font-size: 0.9rem;
+        color: var(--text);
+        line-height: 1.6;
+    }
+
+    .field-value a {
+        color: var(--blue);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .field-value a:hover { text-decoration: underline; }
+
+    .field-value.empty {
+        color: var(--text-dim);
+        font-style: italic;
+    }
+
+    .divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 1.5rem 0;
+    }
+
+    .detail-meta {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+    }
+
+    /* Status history block */
+    .status-history {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .status-history-title {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 0.75rem;
+    }
+
+    .status-history-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.85rem;
+    }
+
+    .status-history-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text);
+    }
+
+    .status-history-date {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .detail-footer {
+        padding: 1.25rem 2rem;
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+
+    .btn-edit {
+        background: var(--text);
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.5rem 1.1rem;
+        border-radius: 7px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: opacity 0.15s;
+    }
+
+    .btn-edit:hover { opacity: 0.8; color: #fff; }
+
+    .btn-delete {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 500;
+        padding: 0.5rem 1.1rem;
+        border-radius: 7px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: all 0.15s;
+    }
+
+    .btn-delete:hover {
+        border-color: var(--red);
+        color: var(--red);
+        background: var(--red-soft);
+    }
+</style>
+
+<div class="detail-wrapper">
+    <a href="{% url 'dashboard' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Назад до списку
+    </a>
+
+    <div class="detail-card">
+
+        <!-- Header -->
+        <div class="detail-header">
+            <div>
+                <h1 class="detail-title">{{ job.title }}</h1>
+                <div class="detail-company">
+                    <i class="bi bi-building"></i> {{ job.company }}
+                </div>
+            </div>
+            {% with s=job.status.name|lower %}
+            {% if "applied" in s %}
+                <span class="status-badge s-applied"><span class="status-dot"></span>{{ job.status.name }}</span>
+            {% elif "interview" in s %}
+                <span class="status-badge s-interview"><span class="status-dot"></span>{{ job.status.name }}</span>
+            {% elif "offer" in s %}
+                <span class="status-badge s-offer"><span class="status-dot"></span>{{ job.status.name }}</span>
+            {% elif "reject" in s %}
+                <span class="status-badge s-rejected"><span class="status-dot"></span>{{ job.status.name }}</span>
+            {% else %}
+                <span class="status-badge s-default"><span class="status-dot"></span>{{ job.status.name }}</span>
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Body -->
+        <div class="detail-body">
+
+            <!-- Meta -->
+            <div class="detail-meta">
+                <div class="meta-item">
+                    <i class="bi bi-calendar3"></i>
+                    Додано {{ job.created_at|date:"d.m.Y" }}
+                </div>
+                <div class="meta-item">
+                    <i class="bi bi-pencil-square"></i>
+                    Оновлено {{ job.updated_at|date:"d.m.Y" }}
+                </div>
+                {% if job.url %}
+                <div class="meta-item">
+                    <i class="bi bi-link-45deg"></i>
+                    <a href="{{ job.url }}" target="_blank" style="color: var(--blue);">Переглянути вакансію</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <hr class="divider">
+
+            <!-- Status history -->
+            <div class="status-history">
+                <div class="status-history-title">Історія статусу</div>
+                <div class="status-history-row">
+                    <div class="status-history-left">
+                        {% with s=job.status.name|lower %}
+                        {% if "applied" in s %}
+                            <span class="status-badge s-applied" style="font-size: 0.72rem; padding: 0.2rem 0.6rem;"><span class="status-dot"></span>{{ job.status.name }}</span>
+                        {% elif "interview" in s %}
+                            <span class="status-badge s-interview" style="font-size: 0.72rem; padding: 0.2rem 0.6rem;"><span class="status-dot"></span>{{ job.status.name }}</span>
+                        {% elif "offer" in s %}
+                            <span class="status-badge s-offer" style="font-size: 0.72rem; padding: 0.2rem 0.6rem;"><span class="status-dot"></span>{{ job.status.name }}</span>
+                        {% elif "reject" in s %}
+                            <span class="status-badge s-rejected" style="font-size: 0.72rem; padding: 0.2rem 0.6rem;"><span class="status-dot"></span>{{ job.status.name }}</span>
+                        {% else %}
+                            <span class="status-badge s-default" style="font-size: 0.72rem; padding: 0.2rem 0.6rem;"><span class="status-dot"></span>{{ job.status.name }}</span>
+                        {% endif %}
+                        {% endwith %}
+                        <span style="font-size: 0.82rem; color: var(--text);">поточний статус</span>
+                    </div>
+                    <div class="status-history-date">
+                        {% if job.status_changed_at %}
+                            змінено {{ job.status_changed_at|date:"d.m.Y" }}
+                        {% else %}
+                            встановлено при створенні
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- URL -->
+            {% if job.url %}
+            <div class="detail-field">
+                <div class="field-label">Посилання на вакансію</div>
+                <div class="field-value">
+                    <a href="{{ job.url }}" target="_blank">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                        {{ job.url }}
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Notes -->
+            <div class="detail-field">
+                <div class="field-label">Нотатки</div>
+                {% if job.description %}
+                    <div class="field-value">{{ job.description|linebreaks }}</div>
+                {% else %}
+                    <div class="field-value empty">Нотаток немає</div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="detail-footer">
+            <a href="{% url 'job_delete' job.pk %}" class="btn-delete">
+                <i class="bi bi-trash3"></i> Видалити
+            </a>
+            <a href="{% url 'job_edit' job.pk %}" class="btn-edit">
+                <i class="bi bi-pencil"></i> Редагувати
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

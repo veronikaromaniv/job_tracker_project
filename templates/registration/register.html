@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Реєстрація — JobTracker{% endblock %}
+
+{% block content %}
+<style>
+    .auth-wrap {
+        min-height: 65vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+
+    .auth-box { width: 100%; max-width: 380px; }
+
+    .auth-header { margin-bottom: 2rem; }
+
+    .auth-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.03em;
+        margin-bottom: 0.3rem;
+    }
+
+    .auth-subtitle { color: var(--text-muted); font-size: 0.875rem; }
+
+    .auth-box p { margin-bottom: 1rem; }
+
+    .auth-box label {
+        display: block;
+        color: var(--text);
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+    }
+
+    .auth-box input[type="text"],
+    .auth-box input[type="password"],
+    .auth-box input[type="email"] {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        padding: 0.65rem 0.9rem;
+        outline: none;
+        transition: border-color 0.15s;
+    }
+
+    .auth-box input:focus { border-color: var(--text); }
+    .auth-box input::placeholder { color: var(--text-dim); }
+
+    .auth-box ul { list-style: none; padding: 0; margin-top: 0.3rem; }
+    .auth-box ul li { font-size: 0.78rem; color: var(--text-muted); }
+
+    .helptext { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem; display: block; }
+
+    .btn-auth {
+        width: 100%;
+        background: var(--text);
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0.7rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.15s;
+        margin-top: 0.25rem;
+    }
+
+    .btn-auth:hover { opacity: 0.85; }
+
+    .auth-divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 1.5rem 0;
+    }
+
+    .auth-footer {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .auth-footer a { color: var(--text); font-weight: 500; text-decoration: none; }
+    .auth-footer a:hover { text-decoration: underline; }
+</style>
+
+<div class="auth-wrap">
+    <div class="auth-box">
+        <div class="auth-header">
+            <h1 class="auth-title">Реєстрація</h1>
+            <p class="auth-subtitle">Створи акаунт — це безкоштовно</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn-auth">Створити акаунт</button>
+        </form>
+
+        <hr class="auth-divider">
+
+        <div class="auth-footer">
+            Вже є акаунт? <a href="{% url 'login' %}">Увійти</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

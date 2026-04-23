@@ -1,0 +1,486 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — JobTracker{% endblock %}
+
+{% block content %}
+<style>
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.03em;
+        margin: 0;
+    }
+
+    .page-subtitle {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-top: 0.2rem;
+    }
+
+    .btn-add {
+        background: var(--text);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 8px;
+        border: none;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: opacity 0.15s;
+        white-space: nowrap;
+    }
+
+    .btn-add:hover { opacity: 0.8; color: #fff; }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.75rem;
+    }
+
+    @media (max-width: 640px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        text-decoration: none;
+        display: block;
+        transition: all 0.15s;
+        cursor: default;
+    }
+
+    .stat-box.clickable { cursor: pointer; }
+    .stat-box.clickable:hover { border-color: var(--border-dark); background: var(--surface-2); }
+
+    .stat-box.active-filter { border-color: var(--text); background: var(--text); }
+    .stat-box.active-filter .stat-box-num,
+    .stat-box.active-filter .stat-box-label { color: #fff; }
+
+    .stat-box.active-interview { border-color: var(--yellow); background: var(--yellow-soft); }
+    .stat-box.active-interview .stat-box-num { color: var(--yellow); }
+    .stat-box.active-interview .stat-box-label { color: var(--yellow); }
+
+    .stat-box.active-offer { border-color: var(--green); background: var(--green-soft); }
+    .stat-box.active-offer .stat-box-num { color: var(--green); }
+    .stat-box.active-offer .stat-box-label { color: var(--green); }
+
+    .stat-box.active-rejected { border-color: var(--red); background: var(--red-soft); }
+    .stat-box.active-rejected .stat-box-num { color: var(--red); }
+    .stat-box.active-rejected .stat-box-label { color: var(--red); }
+
+    .stat-box-num {
+        font-family: 'Manrope', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1;
+        margin-bottom: 0.2rem;
+    }
+
+    .stat-box-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; }
+
+    .search-bar { margin-bottom: 1rem; display: flex; gap: 0.5rem; }
+
+    .search-input {
+        flex: 1;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        padding: 0.55rem 1rem;
+        outline: none;
+        transition: border-color 0.15s;
+    }
+
+    .search-input:focus { border-color: var(--border-dark); }
+    .search-input::placeholder { color: var(--text-dim); }
+
+    .search-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        border-radius: 8px;
+        padding: 0.55rem 1rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: all 0.15s;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .search-btn:hover { color: var(--text); border-color: var(--border-dark); }
+
+    .search-clear {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.55rem 0.75rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        transition: all 0.15s;
+        white-space: nowrap;
+    }
+
+    .search-clear:hover { color: var(--red); border-color: var(--red); }
+
+    .search-result-info { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+
+    .filter-info {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-clear { color: var(--red); text-decoration: none; font-size: 0.78rem; }
+
+    .table-card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .table-card-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface);
+    }
+
+    .table-card-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .count-badge {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.15rem 0.55rem;
+        border-radius: 100px;
+    }
+
+    .table { margin: 0; }
+
+    .table thead th {
+        background: var(--surface);
+        color: var(--text-dim);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+    }
+
+    .table thead th:last-child { width: 160px; }
+
+    .table tbody td {
+        padding: 0.9rem 1.5rem;
+        border-color: var(--border);
+        vertical-align: middle;
+        font-size: 0.875rem;
+        background: transparent;
+        color: var(--text);
+    }
+
+    .table tbody tr:hover td { background: var(--surface); }
+    .table tbody tr:last-child td { border-bottom: none; }
+
+    .job-title { font-weight: 600; color: var(--text); font-size: 0.875rem; }
+    .job-company { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.1rem; }
+    .job-date { color: var(--text-dim); font-size: 0.8rem; }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.65rem;
+        border-radius: 100px;
+        font-size: 0.72rem;
+        font-weight: 600;
+    }
+
+    .status-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+    .s-applied   { background: var(--blue-soft);   color: var(--blue);   }
+    .s-applied   .status-dot { background: var(--blue); }
+    .s-interview { background: var(--yellow-soft);  color: var(--yellow); }
+    .s-interview .status-dot { background: var(--yellow); }
+    .s-offer     { background: var(--green-soft);   color: var(--green);  }
+    .s-offer     .status-dot { background: var(--green); }
+    .s-rejected  { background: var(--red-soft);     color: var(--red);    }
+    .s-rejected  .status-dot { background: var(--red); }
+    .s-default   { background: var(--surface-2);    color: var(--text-muted); }
+    .s-default   .status-dot { background: var(--text-dim); }
+
+    .action-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        border-radius: 6px;
+        padding: 0.25rem 0.6rem;
+        font-size: 0.75rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        transition: all 0.15s;
+    }
+
+    .action-btn:hover { color: var(--text); border-color: var(--border-dark); }
+
+    .action-btn-del:hover {
+        color: var(--red);
+        border-color: var(--red);
+        background: var(--red-soft);
+    }
+
+    .empty-state { text-align: center; padding: 4rem 2rem; }
+
+    .empty-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 0.4rem;
+    }
+
+    .empty-desc { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+
+    .pagination-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 1.25rem 1.5rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .page-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        border-radius: 6px;
+        padding: 0.3rem 0.7rem;
+        font-size: 0.8rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.15s;
+    }
+
+    .page-btn:hover { color: var(--text); border-color: var(--border-dark); }
+    .page-btn.active { background: var(--text); border-color: var(--text); color: #fff; font-weight: 600; }
+    .page-btn.disabled { opacity: 0.4; pointer-events: none; }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Мої відгуки</h1>
+        <p class="page-subtitle">Відстежуй прогрес у пошуку роботи</p>
+    </div>
+    <a href="{% url 'job_create' %}" class="btn-add">
+        <i class="bi bi-plus"></i> Додати вакансію
+    </a>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+    <a href="{% url 'dashboard' %}" class="stat-box clickable {% if not status_filter %}active-filter{% endif %}">
+        <div class="stat-box-num">{{ total_count }}</div>
+        <div class="stat-box-label">Всього</div>
+    </a>
+    <a href="?status=interview" class="stat-box clickable {% if status_filter == 'interview' %}active-interview{% endif %}">
+        <div class="stat-box-num">{{ interview_count }}</div>
+        <div class="stat-box-label">Співбесіди</div>
+    </a>
+    <a href="?status=offer" class="stat-box clickable {% if status_filter == 'offer' %}active-offer{% endif %}">
+        <div class="stat-box-num">{{ offers_count }}</div>
+        <div class="stat-box-label">Офери</div>
+    </a>
+    <a href="?status=rejected" class="stat-box clickable {% if status_filter == 'rejected' %}active-rejected{% endif %}">
+        <div class="stat-box-num">{{ rejected_count }}</div>
+        <div class="stat-box-label">Відмови</div>
+    </a>
+</div>
+
+<!-- Filter info -->
+{% if status_filter %}
+<div class="filter-info">
+    <i class="bi bi-funnel"></i>
+    {% if status_filter == 'interview' %}Фільтр: Співбесіди{% endif %}
+    {% if status_filter == 'offer' %}Фільтр: Офери{% endif %}
+    {% if status_filter == 'rejected' %}Фільтр: Відмови{% endif %}
+    — знайдено {{ page_obj.paginator.count }}
+    <a href="{% url 'dashboard' %}" class="filter-clear"><i class="bi bi-x"></i> Скинути</a>
+</div>
+{% endif %}
+
+<!-- Search -->
+<form method="get" class="search-bar">
+    {% if status_filter %}
+        <input type="hidden" name="status" value="{{ status_filter }}">
+    {% endif %}
+    <input type="text" name="q" class="search-input" placeholder="Пошук за посадою або компанією..." value="{{ query }}">
+    <button type="submit" class="search-btn"><i class="bi bi-search"></i> Знайти</button>
+    {% if query %}
+        <a href="{% url 'dashboard' %}{% if status_filter %}?status={{ status_filter }}{% endif %}" class="search-clear">
+            <i class="bi bi-x"></i> Очистити
+        </a>
+    {% endif %}
+</form>
+
+{% if query %}
+    <div class="search-result-info">
+        Результати для "<strong>{{ query }}</strong>" — знайдено {{ page_obj.paginator.count }}
+    </div>
+{% endif %}
+
+<!-- Table -->
+<div class="table-card">
+    <div class="table-card-header">
+        <div class="table-card-title">Список вакансій</div>
+        <span class="count-badge">{{ page_obj.paginator.count }}</span>
+    </div>
+
+    {% if page_obj %}
+    <div class="table-responsive">
+        <table class="table table-borderless">
+            <thead>
+                <tr>
+                    <th>Посада / Компанія</th>
+                    <th>Статус</th>
+                    <th>Додано</th>
+                    <th>Статус змінено</th>
+                    <th style="width: 160px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in page_obj %}
+                <tr>
+                    <td>
+                        <a href="{% url 'job_detail' app.pk %}" style="text-decoration:none;">
+                            <div class="job-title">{{ app.title }}</div>
+                            <div class="job-company">{{ app.company }}</div>
+                        </a>
+                    </td>
+                    <td>
+                        {% with s=app.status.name|lower %}
+                        {% if "applied" in s %}
+                            <span class="status-badge s-applied"><span class="status-dot"></span>{{ app.status.name }}</span>
+                        {% elif "interview" in s %}
+                            <span class="status-badge s-interview"><span class="status-dot"></span>{{ app.status.name }}</span>
+                        {% elif "offer" in s %}
+                            <span class="status-badge s-offer"><span class="status-dot"></span>{{ app.status.name }}</span>
+                        {% elif "reject" in s %}
+                            <span class="status-badge s-rejected"><span class="status-dot"></span>{{ app.status.name }}</span>
+                        {% else %}
+                            <span class="status-badge s-default"><span class="status-dot"></span>{{ app.status.name }}</span>
+                        {% endif %}
+                        {% endwith %}
+                    </td>
+                    <td><span class="job-date">{{ app.created_at|date:"d.m.Y" }}</span></td>
+                    <td>
+                        <span class="job-date">
+                            {% if app.status_changed_at %}
+                                {{ app.status_changed_at|date:"d.m.Y" }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'job_edit' app.pk %}" class="action-btn">
+                                <i class="bi bi-pencil"></i> Редагувати
+                            </a>
+                            <a href="{% url 'job_delete' app.pk %}" class="action-btn action-btn-del">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination-bar">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        {% else %}
+            <span class="page-btn disabled"><i class="bi bi-chevron-left"></i></span>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="page-btn active">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-btn">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        {% else %}
+            <span class="page-btn disabled"><i class="bi bi-chevron-right"></i></span>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        {% if query or status_filter %}
+            <div class="empty-title">Нічого не знайдено</div>
+            <p class="empty-desc">Спробуй інший запит або скинь фільтр</p>
+            <a href="{% url 'dashboard' %}" class="btn-add"><i class="bi bi-x"></i> Скинути фільтри</a>
+        {% else %}
+            <div class="empty-title">Поки що порожньо</div>
+            <p class="empty-desc">Додай свою першу вакансію, щоб почати відстеження</p>
+            <a href="{% url 'job_create' %}" class="btn-add"><i class="bi bi-plus"></i> Додати вакансію</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

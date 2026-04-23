@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}JobTracker — Пошук роботи під контролем{% endblock %}
+
+{% block content %}
+<style>
+    .hero {
+        padding: 5rem 0 4rem;
+        max-width: 580px;
+    }
+
+    .hero-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        font-weight: 500;
+        padding: 0.3rem 0.75rem;
+        border-radius: 100px;
+        margin-bottom: 2rem;
+    }
+
+    .hero-tag span {
+        width: 6px;
+        height: 6px;
+        background: var(--green);
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .hero-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: clamp(2rem, 5vw, 3.25rem);
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.04em;
+        color: var(--text);
+        margin-bottom: 1.25rem;
+    }
+
+    .hero-desc {
+        font-size: 1rem;
+        color: var(--text-muted);
+        line-height: 1.7;
+        margin-bottom: 2.5rem;
+        max-width: 440px;
+    }
+
+    .hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+    .btn-primary-hero {
+        background: var(--text);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0.7rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: opacity 0.15s;
+    }
+
+    .btn-primary-hero:hover { opacity: 0.85; color: #fff; }
+
+    .btn-secondary-hero {
+        background: transparent;
+        color: var(--text-muted);
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 0.7rem 1.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.15s;
+    }
+
+    .btn-secondary-hero:hover { color: var(--text); border-color: var(--border-dark); }
+
+    /* Divider */
+    .section-divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 3rem 0;
+    }
+
+    /* Features */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+        padding-bottom: 4rem;
+    }
+
+    @media (max-width: 768px) { .features-grid { grid-template-columns: 1fr; } }
+
+    .feature-item {}
+
+    .feature-num {
+        font-family: 'Manrope', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-dim);
+        letter-spacing: 0.05em;
+        margin-bottom: 0.75rem;
+    }
+
+    .feature-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-desc {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        line-height: 1.65;
+    }
+
+    /* CTA strip */
+    .cta-strip {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 4rem;
+    }
+
+    .cta-strip-text {}
+    .cta-strip-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.02em;
+    }
+
+    .cta-strip-desc { color: var(--text-muted); font-size: 0.875rem; }
+</style>
+
+<!-- Hero -->
+<div class="hero">
+    <div class="hero-tag"><span></span> Безкоштовно</div>
+    <h1 class="hero-title">Пошук роботи під повним контролем</h1>
+    <p class="hero-desc">Записуй відгуки, відстежуй статуси співбесід та офери — все в одному місці.</p>
+    <div class="hero-actions">
+        {% if not user.is_authenticated %}
+            <a href="{% url 'register' %}" class="btn-primary-hero">Почати <i class="bi bi-arrow-right"></i></a>
+            <a href="{% url 'login' %}" class="btn-secondary-hero">Увійти</a>
+        {% else %}
+            <a href="{% url 'dashboard' %}" class="btn-primary-hero">Мій Dashboard <i class="bi bi-arrow-right"></i></a>
+        {% endif %}
+    </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- Features -->
+<div class="features-grid">
+    <div class="feature-item">
+        <div class="feature-num">01</div>
+        <div class="feature-title">Всі відгуки в одному місці</div>
+        <p class="feature-desc">Додавай компанії та посади. Більше жодних нотаток на папері чи загублених листів.</p>
+    </div>
+    <div class="feature-item">
+        <div class="feature-num">02</div>
+        <div class="feature-title">Статуси на кожному кроці</div>
+        <p class="feature-desc">Applied → Interview → Offer → Rejected. Завжди знаєш де ти знаходишся.</p>
+    </div>
+    <div class="feature-item">
+        <div class="feature-num">03</div>
+        <div class="feature-title">Тільки твої дані</div>
+        <p class="feature-desc">Кожен бачить лише свої записи. Приватно і безпечно.</p>
+    </div>
+</div>
+
+{% if not user.is_authenticated %}
+<div class="cta-strip">
+    <div class="cta-strip-text">
+        <div class="cta-strip-title">Готова почати?</div>
+        <div class="cta-strip-desc">Реєстрація займає менше хвилини.</div>
+    </div>
+    <a href="{% url 'register' %}" class="btn-primary-hero">Створити акаунт <i class="bi bi-arrow-right"></i></a>
+</div>
+{% endif %}
+{% endblock %}

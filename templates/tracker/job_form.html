@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} — JobTracker{% endblock %}
+
+{% block content %}
+<style>
+    .form-wrap { max-width: 560px; }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: var(--text-muted);
+        font-size: 0.82rem;
+        text-decoration: none;
+        margin-bottom: 2rem;
+        transition: color 0.15s;
+    }
+
+    .back-link:hover { color: var(--text); }
+
+    .form-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.03em;
+        margin-bottom: 2rem;
+    }
+
+    .field-group { margin-bottom: 1.25rem; }
+
+    .field-label {
+        display: block;
+        color: var(--text);
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+    }
+
+    .req { color: var(--text-dim); }
+
+    .field-input {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        padding: 0.65rem 0.9rem;
+        outline: none;
+        transition: border-color 0.15s;
+    }
+
+    .field-input:focus { border-color: var(--text); }
+    .field-input::placeholder { color: var(--text-dim); }
+
+    textarea.field-input { resize: vertical; min-height: 100px; }
+
+    select.field-input {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.9rem center;
+        padding-right: 2.25rem;
+        cursor: pointer;
+    }
+
+    .field-hint { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.3rem; }
+    .field-error { font-size: 0.75rem; color: var(--red); margin-top: 0.3rem; }
+
+    .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    @media (max-width: 480px) { .two-col { grid-template-columns: 1fr; } }
+
+    .form-sep {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 1.5rem 0;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.75rem;
+    }
+
+    .btn-submit {
+        background: var(--text);
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0.65rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+
+    .btn-submit:hover { opacity: 0.85; }
+
+    .btn-cancel-link {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 0.65rem 1.25rem;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.15s;
+    }
+
+    .btn-cancel-link:hover { color: var(--text); border-color: var(--border-dark); }
+</style>
+
+<div class="form-wrap">
+    <a href="{% url 'dashboard' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Назад
+    </a>
+
+    <h1 class="form-title">{{ title }}</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="two-col">
+            <div class="field-group">
+                <label class="field-label">Посада <span class="req">*</span></label>
+                <input type="text" name="title" class="field-input"
+                    placeholder="Python Developer"
+                    value="{{ form.title.value|default:'' }}" required>
+                {% if form.title.errors %}
+                    <div class="field-error">{{ form.title.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Компанія <span class="req">*</span></label>
+                <input type="text" name="company" class="field-input"
+                    placeholder="Google"
+                    value="{{ form.company.value|default:'' }}" required>
+                {% if form.company.errors %}
+                    <div class="field-error">{{ form.company.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Посилання на вакансію</label>
+            <input type="url" name="url" class="field-input"
+                placeholder="https://..."
+                value="{{ form.url.value|default:'' }}">
+            <div class="field-hint">Необов'язково</div>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Статус <span class="req">*</span></label>
+            <select name="status" class="field-input">
+                <option value="">— Обери статус —</option>
+                {% for choice in form.status.field.queryset %}
+                    <option value="{{ choice.pk }}"
+                        {% if form.instance.status_id == choice.pk %}selected
+                        {% elif not form.instance.pk and form.status.value == choice.pk|stringformat:"s" %}selected
+                        {% endif %}>
+                        {{ choice.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <hr class="form-sep">
+
+        <div class="field-group">
+            <label class="field-label">Нотатки</label>
+            <textarea name="description" class="field-input"
+                placeholder="Контакти рекрутера, деталі співбесіди...">{{ form.description.value|default:'' }}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                {% if 'Редаг' in title %}Зберегти{% else %}Додати{% endif %}
+            </button>
+            <a href="{% url 'dashboard' %}" class="btn-cancel-link">Скасувати</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
