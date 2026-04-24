@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 class Category(models.Model):
@@ -52,6 +53,13 @@ class JobApplication(models.Model):
     def __str__(self):
         return f"{self.title} у {self.company}"
 
+    def save(self, *args, **kwargs):
+        if self.pk:
+            old = JobApplication.objects.filter(pk=self.pk).values('status_id').first()
+            if old and old['status_id'] != self.status_id:
+                self.status_changed_at = timezone.now()
+        super().save(*args, **kwargs)
+
 class Event(models.Model):
     EVENT_TYPES = [
         ('interview', 'Співбесіда'),
@@ -66,7 +74,7 @@ class Event(models.Model):
         verbose_name="Вакансія"
     )
     title = models.CharField(max_length=200, verbose_name="Назва події")
-    date = models.DateField(verbose_name="Дата")
+    date = models.DateTimeField(verbose_name="Дата та час")
     event_type = models.CharField(
         max_length=20,
         choices=EVENT_TYPES,

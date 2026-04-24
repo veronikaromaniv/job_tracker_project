@@ -74,6 +74,9 @@
             font-weight: 500;
             transition: color 0.15s;
             padding: 0.35rem 0.75rem !important;
+            display: inline-flex;
+            align-items: center;
+            line-height: 1.2;
         }
 
         .nav-link:hover { color: var(--text) !important; }
@@ -96,6 +99,57 @@
             gap: 0.5rem;
             color: var(--text-muted);
             font-size: 0.85rem;
+        }
+
+        .user-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            padding: 0.35rem 0.5rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .user-toggle:hover {
+            background: var(--surface);
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        .user-toggle.dropdown-toggle::after { display: none; }
+
+        .dropdown-menu {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.4rem;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+        }
+
+        .dropdown-item {
+            border-radius: 10px;
+            padding: 0.55rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item:hover { background: var(--surface); }
+
+        .dropdown-item.text-danger:hover { background: var(--red-soft); }
+
+        /* Mobile: show username inline in navbar row */
+        .user-inline {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-left: auto;
+            margin-right: 0.5rem;
+            white-space: nowrap;
         }
 
         .user-avatar {
@@ -152,24 +206,54 @@
                 </div>
                 JobTracker
             </a>
+
+            {% if user.is_authenticated %}
+                <div class="dropdown user-inline d-lg-none">
+                    <button class="user-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="user-avatar">{{ user.username|first }}</div>
+                        <span>{{ user.username }}</span>
+                        <i class="bi bi-chevron-down" style="font-size: 0.8rem;"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person" style="margin-right:0.4rem;"></i>Профіль</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{% url 'account_logout' %}" method="post" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger">Вийти</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            {% endif %}
+
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <i class="bi bi-list fs-4"></i>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="navbar-nav ms-auto align-items-center gap-2">
+                <div class="navbar-nav ms-auto w-auto align-items-center align-items-lg-center gap-2 text-center text-lg-start">
                     {% if user.is_authenticated %}
                         <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-                        <a class="nav-link" href="#">Calendar</a>
-                        <div class="user-chip">
-                            <div class="user-avatar">{{ user.username|first }}</div>
-                            <span>{{ user.username }}</span>
+                        <a class="nav-link" href="{% url 'calendar' %}">Calendar</a>
+                        <div class="dropdown d-none d-lg-block">
+                            <button class="user-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="user-avatar">{{ user.username|first }}</div>
+                                <span>{{ user.username }}</span>
+                                <i class="bi bi-chevron-down" style="font-size: 0.8rem;"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person" style="margin-right:0.4rem;"></i>Профіль</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{% url 'account_logout' %}" method="post" class="m-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item text-danger">Вийти</button>
+                                    </form>
+                                </li>
+                            </ul>
                         </div>
-                        <form action="{% url 'logout' %}" method="post" class="d-inline m-0">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-logout">Вийти</button>
-                        </form>
                     {% else %}
-                        <a class="nav-link" href="{% url 'login' %}">Увійти</a>
+                        <a class="nav-link" href="{% url 'account_login' %}">Увійти</a>
                         <a class="nav-link btn-nav-cta" href="{% url 'register' %}">Реєстрація</a>
                     {% endif %}
                 </div>

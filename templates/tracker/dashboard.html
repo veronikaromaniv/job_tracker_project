@@ -308,6 +308,67 @@
     .page-btn:hover { color: var(--text); border-color: var(--border-dark); }
     .page-btn.active { background: var(--text); border-color: var(--text); color: #fff; font-weight: 600; }
     .page-btn.disabled { opacity: 0.4; pointer-events: none; }
+
+    /* Sortable headers */
+    .sort-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--text-dim);
+        text-decoration: none;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        transition: color 0.15s;
+    }
+    .sort-link:hover { color: var(--text); }
+    .sort-link.active-sort { color: var(--text); }
+    .sort-icon { font-size: 0.7rem; opacity: 0.6; }
+
+    /* Upcoming events */
+    .upcoming-block {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+    .upcoming-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .upcoming-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .upcoming-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 7px;
+        text-decoration: none;
+        transition: background 0.15s;
+    }
+    .upcoming-item:hover { background: var(--surface-2); }
+    .upcoming-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .upcoming-dot.interview { background: var(--green); }
+    .upcoming-dot.deadline  { background: var(--red); }
+    .upcoming-dot.other     { background: var(--blue); }
+    .upcoming-item-title { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+    .upcoming-item-sub   { font-size: 0.78rem; color: var(--text-muted); }
+    .upcoming-item-date  { margin-left: auto; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+    .upcoming-today      { color: var(--green) !important; font-weight: 700; }
 </style>
 
 <div class="page-header">
@@ -315,9 +376,17 @@
         <h1 class="page-title">Мої відгуки</h1>
         <p class="page-subtitle">Відстежуй прогрес у пошуку роботи</p>
     </div>
-    <a href="{% url 'job_create' %}" class="btn-add">
-        <i class="bi bi-plus"></i> Додати вакансію
-    </a>
+    <div class="d-flex gap-2 align-items-center">
+        <a href="{% url 'export_csv' %}" class="btn-add" style="background: var(--surface); color: var(--text); border: 1px solid var(--border);">
+            <i class="bi bi-download"></i> CSV
+        </a>
+        <a href="{% url 'export_ical' %}" class="btn-add" style="background: var(--surface); color: var(--text); border: 1px solid var(--border);">
+            <i class="bi bi-calendar-event"></i> iCal
+        </a>
+        <a href="{% url 'job_create' %}" class="btn-add">
+            <i class="bi bi-plus"></i> Додати вакансію
+        </a>
+    </div>
 </div>
 
 <!-- Stats -->
@@ -372,6 +441,30 @@
     </div>
 {% endif %}
 
+{% if upcoming_events %}
+<div class="upcoming-block">
+    <div class="upcoming-title"><i class="bi bi-bell"></i> Найближчі події (7 днів)</div>
+    <div class="upcoming-list">
+        {% for ev in upcoming_events %}
+        <a href="{% url 'job_detail' ev.job.pk %}" class="upcoming-item">
+            <span class="upcoming-dot {{ ev.event_type }}"></span>
+            <div>
+                <div class="upcoming-item-title">{{ ev.title }}</div>
+                <div class="upcoming-item-sub">{{ ev.job.company }}</div>
+            </div>
+            <div class="upcoming-item-date {% if ev.date|date:'Y-m-d' == today|date:'Y-m-d' %}upcoming-today{% endif %}">
+                {% if ev.date|date:'Y-m-d' == today|date:'Y-m-d' %}
+                    Сьогодні {% if ev.date|time:'H:i' != '00:00' %}· {{ ev.date|time:'H:i' }}{% endif %}
+                {% else %}
+                    {{ ev.date|date:"d.m" }}{% if ev.date|time:'H:i' != '00:00' %} · {{ ev.date|time:'H:i' }}{% endif %}
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <!-- Table -->
 <div class="table-card">
     <div class="table-card-header">
@@ -384,10 +477,27 @@
         <table class="table table-borderless">
             <thead>
                 <tr>
-                    <th>Посада / Компанія</th>
-                    <th>Статус</th>
-                    <th>Додано</th>
-                    <th>Статус змінено</th>
+                    <th>
+                        {% with next_dir=direction|yesno:"asc,desc,asc" %}
+                        <a href="?sort=title&dir={% if sort == 'title' and direction == 'asc' %}desc{% else %}asc{% endif %}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="sort-link {% if sort == 'title' %}active-sort{% endif %}">
+                            Посада / Компанія
+                            {% if sort == 'title' %}<i class="bi bi-chevron-{% if direction == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>{% endif %}
+                        </a>
+                        {% endwith %}
+                    </th>
+                    <th>
+                        <a href="?sort=status&dir={% if sort == 'status' and direction == 'asc' %}desc{% else %}asc{% endif %}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="sort-link {% if sort == 'status' %}active-sort{% endif %}">
+                            Статус
+                            {% if sort == 'status' %}<i class="bi bi-chevron-{% if direction == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>{% endif %}
+                        </a>
+                    </th>
+                    <th>
+                        <a href="?sort=created_at&dir={% if sort == 'created_at' and direction == 'asc' %}desc{% else %}asc{% endif %}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="sort-link {% if sort == 'created_at' %}active-sort{% endif %}">
+                            Додано
+                            {% if sort == 'created_at' %}<i class="bi bi-chevron-{% if direction == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>{% else %}<i class="bi bi-chevron-down sort-icon"></i>{% endif %}
+                        </a>
+                    </th>
+                    <th><span class="sort-link">Статус змінено</span></th>
                     <th style="width: 160px;"></th>
                 </tr>
             </thead>

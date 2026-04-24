@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Видалити подію — JobTracker{% endblock %}
+
+{% block content %}
+<style>
+    .delete-wrap {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .delete-box { width: 100%; max-width: 460px; }
+
+    .delete-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.03em;
+        margin-bottom: 0.5rem;
+    }
+
+    .delete-desc { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
+
+    .event-preview {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .event-preview-title { font-weight: 600; color: var(--text); font-size: 0.9rem; }
+    .event-preview-meta { color: var(--text-muted); font-size: 0.82rem; margin-top: 0.15rem; }
+
+    .delete-actions { display: flex; gap: 0.75rem; }
+
+    .btn-cancel-del {
+        flex: 1;
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+        font-size: 0.875rem;
+        padding: 0.65rem;
+        border-radius: 8px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+    }
+
+    .btn-cancel-del:hover { color: var(--text); border-color: var(--border-dark); }
+
+    .btn-delete-confirm {
+        flex: 1;
+        background: var(--red);
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.875rem;
+        padding: 0.65rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+
+    .btn-delete-confirm:hover { opacity: 0.85; }
+</style>
+
+<div class="delete-wrap">
+    <div class="delete-box">
+        <h1 class="delete-title">Видалити подію?</h1>
+        <p class="delete-desc">Цю дію не можна скасувати.</p>
+
+        <div class="event-preview">
+            <div class="event-preview-title">{{ event.title }}</div>
+            <div class="event-preview-meta">
+                {{ event.date|date:"d.m.Y" }} · {{ event.get_event_type_display }}
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="delete-actions">
+                <a href="{% url 'job_detail' event.job.pk %}" class="btn-cancel-del">Скасувати</a>
+                <button type="submit" class="btn-delete-confirm">Видалити</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

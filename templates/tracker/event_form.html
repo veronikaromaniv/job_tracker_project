@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}{% if editing %}Редагувати подію{% else %}Додати подію{% endif %} — JobTracker{% endblock %}
+
+{% block content %}
+<style>
+    .form-wrap { max-width: 560px; }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: var(--text-muted);
+        font-size: 0.82rem;
+        text-decoration: none;
+        margin-bottom: 2rem;
+        transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--text); }
+
+    .form-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.03em;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.75rem; }
+
+    .field-group { margin-bottom: 1.25rem; }
+    .field-label {
+        display: block;
+        color: var(--text);
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+    }
+    .field-input {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        padding: 0.65rem 0.9rem;
+        outline: none;
+        transition: border-color 0.15s;
+    }
+    .field-input:focus { border-color: var(--text); }
+
+    .form-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.75rem;
+    }
+    .btn-submit {
+        background: var(--text);
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0.65rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+    .btn-submit:hover { opacity: 0.85; }
+
+    .btn-cancel-link {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 0.65rem 1.25rem;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.15s;
+    }
+    .btn-cancel-link:hover { color: var(--text); border-color: var(--border-dark); }
+
+    .errorlist { list-style: none; padding: 0; margin: 0.35rem 0 0; }
+    .errorlist li { font-size: 0.78rem; color: var(--red); }
+</style>
+
+<div class="form-wrap">
+    <a href="{% url 'job_detail' job.pk %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Назад
+    </a>
+
+    <h1 class="form-title">{% if editing %}Редагувати подію{% else %}Додати подію{% endif %}</h1>
+    <div class="form-subtitle">{{ job.title }} — {{ job.company }}</div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="field-group">
+            <label class="field-label">Назва події <span class="req">*</span></label>
+            <input type="text" name="title" class="field-input"
+                   placeholder="Співбесіда з рекрутером"
+                   value="{{ form.title.value|default:'' }}" required>
+            {{ form.title.errors }}
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Дата та час <span class="req">*</span></label>
+            <input type="datetime-local" name="date" class="field-input"
+                   value="{% if form.date.value %}{{ form.date.value|date:'Y-m-d' }}T{{ form.date.value|time:'H:i' }}{% endif %}" required>
+            {{ form.date.errors }}
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Тип</label>
+            <select name="event_type" class="field-input">
+                {% for value, label in form.fields.event_type.choices %}
+                    <option value="{{ value }}" {% if form.event_type.value == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+            {{ form.event_type.errors }}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">{% if editing %}Зберегти зміни{% else %}Додати{% endif %}</button>
+            <a href="{% url 'job_detail' job.pk %}" class="btn-cancel-link">Скасувати</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

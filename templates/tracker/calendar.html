@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% block title %}Calendar — JobTracker{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+<style>
+  /* ── Header ── */
+  .cal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .cal-title {
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
+  .cal-subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.15rem; }
+
+  /* ── Filter buttons ── */
+  .cal-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Inter', sans-serif;
+  }
+  .cal-filter:hover { border-color: var(--border-dark); color: var(--text); }
+
+  .filter-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--border-dark);
+    transition: background 0.15s;
+  }
+  .cal-filter.interview .filter-dot { background: #ea580c; }
+  .cal-filter.deadline  .filter-dot { background: var(--red); }
+  .cal-filter.other     .filter-dot { background: #ea580c; }
+
+  .cal-filter.active           { background: var(--text);        border-color: var(--text);   color: #fff; }
+  .cal-filter.active .filter-dot { background: rgba(255,255,255,0.7); }
+  .cal-filter.interview.active { background: rgba(234,88,12,0.10); border-color: #ea580c; color: #ea580c; }
+  .cal-filter.deadline.active  { background: var(--red-soft);    border-color: var(--red);    color: var(--red); }
+  .cal-filter.other.active     { background: rgba(234,88,12,0.10); border-color: #ea580c; color: #ea580c; }
+
+  /* ── Calendar card wrapper ── */
+  .calendar-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  /* ── FullCalendar overrides ── */
+  .fc { font-family: 'Inter', sans-serif; font-size: 0.875rem; }
+
+  .fc .fc-toolbar { margin-bottom: 1.25rem; }
+  .fc .fc-toolbar-title {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-size: 1.05rem;
+    color: var(--text);
+  }
+
+  .fc .fc-button {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    box-shadow: none !important;
+    border-radius: 7px !important;
+    padding: 0.35rem 0.75rem;
+    transition: all 0.15s;
+  }
+  .fc .fc-button:hover {
+    background: var(--surface-2);
+    border-color: var(--border-dark);
+    color: var(--text);
+  }
+  .fc .fc-button-active,
+  .fc .fc-button-primary:not(:disabled).fc-button-active {
+    background: var(--text) !important;
+    border-color: var(--text) !important;
+    color: #fff !important;
+  }
+  .fc .fc-button-group { gap: 0.25rem; }
+  .fc .fc-button-group .fc-button { border-radius: 7px !important; }
+
+  .fc-theme-standard td, .fc-theme-standard th { border-color: var(--border); }
+  .fc-theme-standard .fc-scrollgrid { border-color: var(--border); border-radius: 8px; overflow: hidden; }
+
+  .fc .fc-col-header-cell {
+    background: var(--surface);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 0.6rem;
+  }
+  .fc .fc-col-header-cell-cushion { color: var(--text-dim); text-decoration: none; }
+
+  /* Today highlight — blue circle on day number */
+  .fc .fc-day-today { background: transparent !important; }
+  .fc .fc-day-today .fc-daygrid-day-number {
+    background: #ea580c;
+    color: #fff;
+    border-radius: 50%;
+    width: 26px; height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    margin: 2px;
+  }
+
+  .fc .fc-daygrid-day-number {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 6px 8px;
+    text-decoration: none;
+  }
+  .fc .fc-daygrid-day.fc-day-other .fc-daygrid-day-number { color: var(--text-dim); }
+
+  /* Event pill */
+  .fc .fc-daygrid-event {
+    border-radius: 5px;
+    border-left-width: 3px !important;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    margin: 1px 2px;
+  }
+  .fc .fc-daygrid-event:hover { opacity: 0.85; }
+
+  .fc-event-custom {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 5px;
+    overflow: hidden;
+  }
+  .fc-event-time-dot {
+    font-size: 0.68rem;
+    opacity: 0.75;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .fc-event-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .fc-event-company {
+    font-size: 0.68rem;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Tooltip */
+  .cal-tooltip {
+    position: fixed;
+    z-index: 9999;
+    background: var(--text);
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    pointer-events: none;
+    max-width: 220px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    display: none;
+  }
+  .cal-tooltip-title { font-weight: 700; margin-bottom: 2px; }
+  .cal-tooltip-sub   { opacity: 0.7; font-size: 0.74rem; }
+
+  /* List view */
+  .fc .fc-list-event:hover td { background: var(--surface); }
+  .fc .fc-list-day-cushion { background: var(--surface); }
+  .fc .fc-list-event-title a { color: var(--text); text-decoration: none; }
+</style>
+
+<div class="cal-head">
+  <div>
+    <h1 class="cal-title">Календар</h1>
+    <p class="cal-subtitle">Всі події по вакансіях</p>
+  </div>
+  <div class="d-flex gap-1 flex-wrap">
+    <button class="cal-filter active"    data-type=""><span class="filter-dot"></span>Всі</button>
+    <button class="cal-filter interview" data-type="interview"><span class="filter-dot"></span>Співбесіди</button>
+    <button class="cal-filter deadline"  data-type="deadline"><span class="filter-dot"></span>Дедлайни</button>
+    <button class="cal-filter other"     data-type="other"><span class="filter-dot"></span>Інше</button>
+  </div>
+</div>
+
+<div class="calendar-card">
+  <div id="calendar"></div>
+</div>
+
+<div class="cal-tooltip" id="calTooltip">
+  <div class="cal-tooltip-title" id="calTooltipTitle"></div>
+  <div class="cal-tooltip-sub"   id="calTooltipSub"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script>
+  var activeType = '';
+  var tooltip = document.getElementById('calTooltip');
+
+  function eventsUrl(type) {
+    return '/api/events/' + (type ? '?type=' + type : '');
+  }
+
+  function formatTime(dateStr) {
+    var d = new Date(dateStr);
+    var h = d.getHours(), m = d.getMinutes();
+    if (h === 0 && m === 0) return '';
+    return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
+  }
+
+  var cal = new FullCalendar.Calendar(document.getElementById('calendar'), {
+    initialView: 'dayGridMonth',
+    locale: 'uk',
+    firstDay: 1,
+    headerToolbar: {
+      left:   'prev,next today',
+      center: 'title',
+      right:  'dayGridMonth,timeGridWeek,listWeek',
+    },
+    buttonText: {
+      today: 'Сьогодні',
+      month: 'Місяць',
+      week:  'Тиждень',
+      list:  'Список',
+    },
+    events: eventsUrl(activeType),
+    eventContent: function(arg) {
+      var time = formatTime(arg.event.startStr);
+      var company = arg.event.extendedProps.company || '';
+      var color = arg.event.textColor || 'inherit';
+
+      var wrap = document.createElement('div');
+      wrap.className = 'fc-event-custom';
+      wrap.style.color = color;
+
+      if (time) {
+        var t = document.createElement('span');
+        t.className = 'fc-event-time-dot';
+        t.textContent = time;
+        wrap.appendChild(t);
+      }
+
+      var inner = document.createElement('div');
+      inner.style.overflow = 'hidden';
+
+      var label = document.createElement('div');
+      label.className = 'fc-event-label';
+      label.textContent = arg.event.title;
+      inner.appendChild(label);
+
+      if (company && arg.view.type === 'dayGridMonth') {
+        var comp = document.createElement('div');
+        comp.className = 'fc-event-company';
+        comp.textContent = company;
+        inner.appendChild(comp);
+      }
+
+      wrap.appendChild(inner);
+      return { domNodes: [wrap] };
+    },
+    eventDidMount: function(arg) {
+      arg.el.addEventListener('mouseenter', function(e) {
+        var time = formatTime(arg.event.startStr);
+        var type = arg.event.extendedProps.event_type || '';
+        var company = arg.event.extendedProps.company || '';
+
+        document.getElementById('calTooltipTitle').textContent = arg.event.title;
+        document.getElementById('calTooltipSub').textContent =
+          [company, type, time].filter(Boolean).join(' · ');
+
+        tooltip.style.display = 'block';
+      });
+      arg.el.addEventListener('mousemove', function(e) {
+        tooltip.style.left = (e.clientX + 14) + 'px';
+        tooltip.style.top  = (e.clientY - 10) + 'px';
+      });
+      arg.el.addEventListener('mouseleave', function() {
+        tooltip.style.display = 'none';
+      });
+    },
+    eventClick: function(info) {
+      info.jsEvent.preventDefault();
+      tooltip.style.display = 'none';
+      if (info.event.url) window.location.href = info.event.url;
+    },
+    height: 'auto',
+  });
+
+  cal.render();
+
+  document.querySelectorAll('.cal-filter').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      activeType = this.dataset.type;
+      document.querySelectorAll('.cal-filter').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      cal.removeAllEventSources();
+      cal.addEventSource(eventsUrl(activeType));
+    });
+  });
+</script>
+{% endblock %}
