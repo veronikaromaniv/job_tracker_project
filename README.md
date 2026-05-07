@@ -85,10 +85,31 @@ python manage.py test tracker accounts
 
 ## Deployment
 
-The project is configured for Railway deployment:
-- `Procfile` runs migrations, collectstatic, and gunicorn
-- `config/settings/prod.py` handles production settings
-- Set `DJANGO_SETTINGS_MODULE=config.settings.prod` in Railway environment variables
+The project is deployed on [Railway](https://railway.app) and configured to run automatically on push.
+
+**How it works:**
+
+The `Procfile` runs three commands on every deploy:
+```
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
+gunicorn config.wsgi --log-file -
+```
+
+**Production settings** (`config/settings/prod.py`):
+- `DEBUG = False`
+- PostgreSQL via `DATABASE_URL`
+- Static files served by WhiteNoise
+- HTTPS enforced (`SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`)
+
+**Required Railway environment variables:**
+
+| Variable | Value |
+|---|---|
+| `DJANGO_SETTINGS_MODULE` | `config.settings.prod` |
+| `SECRET_KEY` | your Django secret key |
+| `DATABASE_URL` | set automatically by Railway PostgreSQL plugin |
+| `ALLOWED_HOSTS` | your Railway domain (e.g. `yourapp.up.railway.app`) |
 
 ## Environment Variables
 
