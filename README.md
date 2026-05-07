@@ -91,6 +91,18 @@ python manage.py runserver
 - Notes field for events
 - Mobile-friendly PWA support
 
+## Contributing
+
+Contributions are welcome! To contribute:
+
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature/your-feature`)
+3. Make your changes and commit (`git commit -m "Add your feature"`)
+4. Push to your branch (`git push origin feature/your-feature`)
+5. Open a Pull Request
+
+For bugs or feature requests, please open an [issue](https://github.com/veronikaromaniv/Job_Tracker/issues).
+
 ## Known Issues
 
 - **Statuses must be created manually** — after a fresh deploy, go to `/admin/` and create the statuses (Applied, Interview, Offer, Rejected). Filters on the dashboard won't work without them.
