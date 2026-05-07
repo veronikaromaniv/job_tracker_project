@@ -77,6 +77,23 @@ python manage.py runserver
 6. Create job statuses in Django Admin (`/admin/`):
    - Applied, Interview, Offer, Rejected
 
+## Future Plans
+
+- Email notifications and reminders before upcoming interviews
+- Password reset via email
+- Event duration field (currently all iCal exports default to 1 hour)
+- Statistics page with charts (applications per month, response rate, offer rate)
+- Notes field for events
+- Mobile-friendly PWA support
+
+## Known Issues
+
+- **Statuses must be created manually** — after a fresh deploy, go to `/admin/` and create the statuses (Applied, Interview, Offer, Rejected). Filters on the dashboard won't work without them.
+- **Status filtering depends on naming** — the dashboard filters use `icontains` on the status name, so renaming a status may break filtering.
+- **iCal events are always 1 hour** — event duration is hardcoded; there is no duration field in the model.
+- **No password reset** — there is no "forgot password" flow on the login page.
+- **Google users see password change form** — users who signed up via Google OAuth don't have a password, but the password change form is shown to them anyway.
+
 ## Running Tests
 
 ```bash
