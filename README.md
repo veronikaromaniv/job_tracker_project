@@ -1,5 +1,10 @@
 # JobTracker
 
+![Python](https://img.shields.io/badge/Python-3.13-blue)
+![Django](https://img.shields.io/badge/Django-6.0-green)
+![Railway](https://img.shields.io/badge/Deployed-Railway-purple)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
 A web application for tracking job applications during the job search process.
 
 **Live demo:** https://jobtrackerproject-production.up.railway.app
