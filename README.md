@@ -11,7 +11,7 @@ A web application for tracking job applications during the job search process.
 - Calendar view with upcoming interviews and deadlines (FullCalendar)
 - Events per job (interviews, deadlines, other)
 - Export to CSV and iCal
-- Google OAuth and username/password authentication
+- Authentication via Google OAuth or username/password login; new users can register directly from the login page
 - User profile management
 - Django Admin panel
 
