@@ -1,5 +1,10 @@
 # JobTracker
 
+![Python](https://img.shields.io/badge/Python-3.13-blue)
+![Django](https://img.shields.io/badge/Django-6.0-green)
+![Railway](https://img.shields.io/badge/Deployed-Railway-purple)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
 A web application for tracking job applications during the job search process.
 
 **Live demo:** https://jobtrackerproject-production.up.railway.app
@@ -85,6 +90,18 @@ python manage.py runserver
 - Statistics page with charts (applications per month, response rate, offer rate)
 - Notes field for events
 - Mobile-friendly PWA support
+
+## Contributing
+
+Contributions are welcome! To contribute:
+
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature/your-feature`)
+3. Make your changes and commit (`git commit -m "Add your feature"`)
+4. Push to your branch (`git push origin feature/your-feature`)
+5. Open a Pull Request
+
+For bugs or feature requests, please open an [issue](https://github.com/veronikaromaniv/Job_Tracker/issues).
 
 ## Known Issues
 
