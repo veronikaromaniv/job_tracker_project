@@ -1,0 +1,30 @@
+name: CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      SECRET_KEY: test-secret-key-for-ci-only
+      DEBUG: "True"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run migrations
+        run: python manage.py migrate --run-syncdb
+
+      - name: Run tests
+        run: python manage.py test tracker accounts --verbosity=2
